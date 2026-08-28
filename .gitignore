@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+
+# Environment variables
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ML artifacts and generated data
+ml/data/raw/*
+ml/data/processed/*
+ml/artifacts/*
+
+# Keep directory structure
+!ml/data/raw/.gitkeep
+!ml/data/processed/.gitkeep
+!ml/artifacts/.gitkeep
+
+# Local sample/generated files
+data/samples/*
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Test and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
