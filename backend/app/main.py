@@ -1,26 +1,11 @@
 from __future__ import annotations
 
-import shutil
-import tempfile
-from pathlib import Path
-
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ml.src.predict import predict_image
-
-from .schemas import AnalysisResponse
-
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-
-ALLOWED_EXTENSIONS = {
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".webp",
-}
+from backend.app.api.routes.analysis import router as analysis_router
+from backend.app.api.routes.health import router as health_router
+from backend.app.database import init_database
 
 
 app = FastAPI(
@@ -36,10 +21,15 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def startup() -> None:
+    init_database()
 
 
 @app.get("/")
@@ -51,80 +41,8 @@ def root() -> dict[str, str]:
     }
 
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {
-        "status": "healthy",
-    }
-
-
-@app.post(
-    "/api/analyze",
-    response_model=AnalysisResponse,
-)
-async def analyze_image(
-    file: UploadFile = File(...),
-) -> AnalysisResponse:
-    if not file.filename:
-        raise HTTPException(
-            status_code=400,
-            detail="No filename provided.",
-        )
-
-    extension = Path(file.filename).suffix.lower()
-
-    if extension not in ALLOWED_EXTENSIONS:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Unsupported image format. "
-                "Use JPG, JPEG, PNG, or WEBP."
-            ),
-        )
-
-    temporary_path: Path | None = None
-
-    try:
-        with tempfile.NamedTemporaryFile(
-            suffix=extension,
-            delete=False,
-        ) as temporary_file:
-            temporary_path = Path(
-                temporary_file.name
-            )
-
-            shutil.copyfileobj(
-                file.file,
-                temporary_file,
-            )
-
-        result = predict_image(
-            temporary_path
-        )
-
-        result["image"] = file.filename
-
-        return AnalysisResponse(
-            **result
-        )
-
-    except HTTPException:
-        raise
-
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=(
-                "Image analysis failed: "
-                f"{exc}"
-            ),
-        ) from exc
-
-    finally:
-        if temporary_path is not None:
-            temporary_path.unlink(
-                missing_ok=True
-            )
+app.include_router(health_router)
+app.include_router(analysis_router)
 
 
 if __name__ == "__main__":

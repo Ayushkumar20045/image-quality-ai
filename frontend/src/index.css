@@ -1,0 +1,73 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap");
+
+:root {
+  font-family: "Manrope", sans-serif;
+  color: #101828;
+  background: #f3f6fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --bg: #f3f6fb;
+  --surface: #ffffff;
+  --surface-soft: #f8faff;
+  --ink: #101828;
+  --muted: #64748b;
+  --subtle: #94a3b8;
+  --line: #dbe4f0;
+  --line-strong: #c7d3e3;
+  --blue: #2563eb;
+  --blue-dark: #1d4ed8;
+  --violet: #7c3aed;
+  --green: #16a34a;
+  --red: #dc2626;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 78% 0%,
+      rgba(37, 99, 235, 0.10),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 12% 38%,
+      rgba(124, 58, 237, 0.035),
+      transparent 25%
+    ),
+    #f3f6fb;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.24);
+  outline-offset: 3px;
+}
+
+#root {
+  min-height: 100vh;
+}
