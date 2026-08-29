@@ -507,8 +507,6 @@ The frontend communicates with the backend through the REST API and uses the Ngi
 ![Image Quality AI — API Documentation](docs/screenshots/05-api-documentation.png)
 
 
-> Place the corresponding screenshots at `docs/screenshots/`. The README intentionally references local files so the documentation remains portable and works directly from GitHub.
-
 ---
 
 ## 18. Deployment
