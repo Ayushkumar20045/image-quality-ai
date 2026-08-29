@@ -436,6 +436,116 @@ def calculate_quality_score(
     severity_confidence: float,
     issues: list[dict[str, Any]],
 ) -> float:
+    """
+    Calculate a consistent 0-100 image quality score.
+
+    The score considers:
+    - primary degradation severity
+    - primary degradation confidence
+    - secondary detected issues
+    - severity and confidence of each issue
+
+    Higher-confidence and higher-severity issues produce
+    larger penalties.
+    """
+
+    severity_penalties = {
+        "low": 8.0,
+        "medium": 22.0,
+        "high": 45.0,
+    }
+
+    degradation_weights = {
+        "blur": 1.00,
+        "noise": 0.90,
+        "compression": 0.75,
+        "underexposure": 0.95,
+        "overexposure": 0.95,
+    }
+
+    score = 100.0
+
+    # Primary model prediction
+    primary_base = severity_penalties.get(
+        severity,
+        22.0,
+    )
+
+    primary_weight = degradation_weights.get(
+        degradation,
+        0.85,
+    )
+
+    primary_confidence = (
+        0.5
+        + 0.5
+        * (
+            degradation_confidence
+            + severity_confidence
+        )
+        / 2.0
+    )
+
+    primary_penalty = (
+        primary_base
+        * primary_weight
+        * primary_confidence
+    )
+
+    score -= primary_penalty
+
+    # Account for every additional detected issue.
+    # This is important when rule-based detection identifies
+    # an issue that is more severe than the primary ML label.
+    for issue in issues:
+        issue_type = str(
+            issue.get("type", "")
+        )
+
+        # Skip the primary issue because it was already penalized.
+        if issue_type == degradation:
+            continue
+
+        issue_severity = str(
+            issue.get("severity", "low")
+        )
+
+        issue_confidence = float(
+            np.clip(
+                issue.get("confidence", 0.0),
+                0.0,
+                1.0,
+            )
+        )
+
+        issue_base = severity_penalties.get(
+            issue_severity,
+            8.0,
+        )
+
+        issue_weight = degradation_weights.get(
+            issue_type,
+            0.85,
+        )
+
+        issue_penalty = (
+            issue_base
+            * issue_weight
+            * (
+                0.5
+                + 0.5 * issue_confidence
+            )
+        )
+
+        score -= issue_penalty
+
+    return float(
+        np.clip(
+            score,
+            0.0,
+            100.0,
+        )
+    )
 
     base_penalty = SEVERITY_PENALTIES.get(
         severity,

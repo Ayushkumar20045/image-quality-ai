@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 
 ALLOWED_EXTENSIONS = {
@@ -12,13 +12,18 @@ ALLOWED_EXTENSIONS = {
     ".webp",
 }
 
-MAX_FILE_SIZE = 10 * 1024 * 1024
-
 
 def validate_extension(filename: str) -> str:
     """
-    Validate and return a normalized image extension.
+    Validate the uploaded filename extension.
+
+    Returns:
+        The normalized lowercase extension.
+
+    Raises:
+        ValueError: If the extension is unsupported.
     """
+
     extension = Path(filename).suffix.lower()
 
     if extension not in ALLOWED_EXTENSIONS:
@@ -30,37 +35,55 @@ def validate_extension(filename: str) -> str:
     return extension
 
 
-def validate_image_file(path: str | Path) -> None:
+def validate_image_file(path: Path) -> None:
     """
-    Verify that the file exists and is a readable image.
-    """
-    image_path = Path(path)
+    Verify that the uploaded file is an actual readable image.
 
-    if not image_path.exists():
+    This validation does not trust the filename or MIME type.
+    The file contents are inspected using Pillow.
+
+    Raises:
+        FileNotFoundError: If the temporary file does not exist.
+        ValueError: If the file is not a valid/readable image.
+    """
+
+    if not path.exists():
         raise FileNotFoundError(
-            f"Image not found: {image_path}"
+            "Uploaded image file could not be found."
         )
 
-    if not image_path.is_file():
+    if not path.is_file():
         raise ValueError(
-            f"Path is not a file: {image_path}"
+            "Uploaded image is not a valid file."
+        )
+
+    if path.stat().st_size == 0:
+        raise ValueError(
+            "Uploaded image is empty."
         )
 
     try:
-        with Image.open(image_path) as image:
+        # First pass verifies the image structure without
+        # decoding the entire image into memory.
+        with Image.open(path) as image:
             image.verify()
-    except Exception as exc:
+
+        # Pillow's verify() invalidates the image object,
+        # therefore reopen the file and actually load it.
+        with Image.open(path) as image:
+            image.load()
+
+            if image.width <= 0 or image.height <= 0:
+                raise ValueError(
+                    "Image has invalid dimensions."
+                )
+
+    except UnidentifiedImageError as exc:
         raise ValueError(
-            f"Invalid or unreadable image: {exc}"
+            "Uploaded file is not a valid image."
         ) from exc
 
-
-def validate_file_size(size: int) -> None:
-    """
-    Enforce the backend's 10 MB upload limit.
-    """
-    if size > MAX_FILE_SIZE:
+    except (OSError, SyntaxError) as exc:
         raise ValueError(
-            "Image is too large. "
-            "Maximum allowed size is 10 MB."
-        )
+            "Image is corrupt or unreadable."
+        ) from exc

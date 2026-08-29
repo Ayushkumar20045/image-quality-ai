@@ -1,7 +1,9 @@
 fastapi
 uvicorn[standard]
 python-multipart
+pillow
 joblib
 numpy
 pandas
 opencv-python-headless
+scikit-learn==1.9.0

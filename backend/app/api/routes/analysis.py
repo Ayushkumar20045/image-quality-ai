@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tempfile
+import traceback
 from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
@@ -20,12 +21,15 @@ from backend.app.utils.image import (
     validate_image_file,
 )
 
+
 router = APIRouter(
     prefix="/api",
     tags=["Analysis"],
 )
 
+
 MAX_FILE_SIZE = 10 * 1024 * 1024
+CHUNK_SIZE = 1024 * 1024
 
 
 @router.post(
@@ -35,6 +39,12 @@ MAX_FILE_SIZE = 10 * 1024 * 1024
 async def analyze(
     file: UploadFile = File(...),
 ) -> AnalysisResponse:
+
+    if file is None:
+        raise HTTPException(
+            status_code=400,
+            detail="No file provided.",
+        )
 
     if not file.filename:
         raise HTTPException(
@@ -67,9 +77,7 @@ async def analyze(
             total_size = 0
 
             while True:
-                chunk = await file.read(
-                    1024 * 1024
-                )
+                chunk = await file.read(CHUNK_SIZE)
 
                 if not chunk:
                     break
@@ -91,7 +99,12 @@ async def analyze(
             validate_image_file(
                 temporary_path
             )
-        except (ValueError, FileNotFoundError) as exc:
+        except FileNotFoundError as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=str(exc),
+            ) from exc
+        except ValueError as exc:
             raise HTTPException(
                 status_code=400,
                 detail=str(exc),
@@ -102,9 +115,7 @@ async def analyze(
             image_name=file.filename,
         )
 
-        analysis_id = save_analysis(
-            result
-        )
+        analysis_id = save_analysis(result)
 
         saved_analysis = get_analysis(
             analysis_id
@@ -127,24 +138,49 @@ async def analyze(
         raise
 
     except ValueError as exc:
+        print(
+            f"IMAGE ANALYSIS VALUE ERROR: "
+            f"{type(exc).__name__}: {exc}",
+            flush=True,
+        )
+        traceback.print_exc()
+
         raise HTTPException(
             status_code=400,
             detail=f"Invalid image: {exc}",
         ) from exc
 
     except FileNotFoundError as exc:
+        print(
+            f"IMAGE ANALYSIS FILE ERROR: "
+            f"{type(exc).__name__}: {exc}",
+            flush=True,
+        )
+        traceback.print_exc()
+
         raise HTTPException(
             status_code=500,
             detail=str(exc),
         ) from exc
 
     except Exception as exc:
+        print(
+            "========== IMAGE ANALYSIS ERROR ==========",
+            flush=True,
+        )
+        print(
+            f"{type(exc).__name__}: {exc}",
+            flush=True,
+        )
+        traceback.print_exc()
+        print(
+            "===========================================",
+            flush=True,
+        )
+
         raise HTTPException(
             status_code=500,
-            detail=(
-                "Image analysis failed. "
-                "Please try another image."
-            ),
+            detail="Image analysis failed. Please try another image.",
         ) from exc
 
     finally:
@@ -152,6 +188,8 @@ async def analyze(
             temporary_path.unlink(
                 missing_ok=True
             )
+
+        await file.close()
 
 
 @router.get(
