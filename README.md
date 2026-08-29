@@ -486,21 +486,26 @@ The frontend communicates with the backend through the REST API and uses the Ngi
 
 ## 17. Screenshots
 
-The repository should contain screenshots of the final running application.
-
-Recommended screenshots:
-
 ### Main analysis screen
 
-![Image Quality AI — Main Analysis](docs/screenshots/main-analysis.png)
+![Image Quality AI — Main Analysis](docs/screenshots/01-landing-page.png)
 
 ### Analysis result
 
-![Image Quality AI — Analysis Result](docs/screenshots/analysis-result.png)
+![Image Quality AI — Analysis Result](docs/screenshots/02-analysis-overview.png)
+
+### Probability breakdown
+
+![Image Quality AI — Probability Breakdown](docs/screenshots/03-probability-breakdown.png)
 
 ### Analysis history
 
-![Image Quality AI — History](docs/screenshots/history.png)
+![Image Quality AI — History](docs/screenshots/04-analysis-history.png)
+
+### API documentation
+
+![Image Quality AI — API Documentation](docs/screenshots/05-api-documentation.png)
+
 
 > Place the corresponding screenshots at `docs/screenshots/`. The README intentionally references local files so the documentation remains portable and works directly from GitHub.
 
@@ -508,7 +513,15 @@ Recommended screenshots:
 
 ## 18. Deployment
 
-The project is containerized with Docker Compose.
+### Live Application
+
+https://image-quality-ai.vercel.app/
+
+### Backend API
+
+https://image-quality-ai-5xb4.onrender.com/
+
+The frontend is deployed on Vercel and communicates with the FastAPI backend deployed on Render.
 
 ### Services
 
