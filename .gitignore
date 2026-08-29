@@ -39,3 +39,6 @@ htmlcov/
 
 # Logs
 *.log
+
+# Local SQLite database
+backend/data/*.db
