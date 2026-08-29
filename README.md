@@ -892,31 +892,8 @@ These are future extensions and are **not presented as completed features**.
 - Virtual environment
 - CLI inference
 
----
 
-## 30. Submission Checklist
-
-Before submission, verify:
-
-- [x] Source code included
-- [x] ML pipeline included
-- [x] Backend API included
-- [x] Frontend included
-- [x] SQLite persistence included
-- [x] Analysis history included
-- [x] Evaluation metrics documented
-- [x] Model-selection approach documented
-- [x] Explainability documented
-- [x] Docker Compose included
-- [x] Health endpoint included
-- [x] API examples included
-- [x] CLI inference verified
-- [ ] Final application screenshots added
-- [ ] Final repository pushed to GitHub
-
----
-
-## 31. Repository
+## 30. Repository
 
 GitHub:
 
@@ -924,7 +901,7 @@ https://github.com/Ayushkumar20045/image-quality-ai
 
 ---
 
-## 32. Author
+## 31. Author
 
 **Ayush Kumar**
 
